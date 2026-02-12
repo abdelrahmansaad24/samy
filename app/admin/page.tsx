@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Profile, Project, Experience, Portfolio } from "@/lib/types";
+import {
+  Profile,
+  Project,
+  Experience,
+  Portfolio,
+  HeroSection,
+  AboutSection,
+  EducationItem,
+  TimelineExperience,
+  SkillsSection,
+  ServiceItem,
+  ContactSection,
+} from "@/lib/types";
 
 const VALID_USERNAME = process.env.NEXT_PUBLIC_USERNAME;
 const VALID_PASSWORD = process.env.NEXT_PUBLIC_PASSWORD;
@@ -30,7 +42,43 @@ export default function AdminPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"profile" | "projects" | "experiences">("profile");
+  const [hero, setHero] = useState<HeroSection>({
+    subtitle: "",
+    title: "",
+    description: "",
+  });
+  const [about, setAbout] = useState<AboutSection>({
+    title: "",
+    p1_start: "",
+    p1_highlight: "",
+    p1_end: "",
+    p2: "",
+    tags: [],
+  });
+  const [education, setEducation] = useState<EducationItem[]>([]);
+  const [timelineExperience, setTimelineExperience] = useState<TimelineExperience>({
+    title: "",
+    date: "",
+    company: "",
+    points: [],
+  });
+  const [skills, setSkills] = useState<SkillsSection>({
+    technical: { analysis: [], programming: [], viz: [] },
+    soft: [],
+  });
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [contact, setContact] = useState<ContactSection>({ phone: "", linkedin: "" });
+
+  const [activeTab, setActiveTab] = useState<
+    | "profile"
+    | "projects"
+    | "experiences"
+    | "homepage"
+    | "education"
+    | "skills"
+    | "services"
+    | "contact"
+  >("profile");
 
   const [tempAvatarFile, setTempAvatarFile] = useState<File | null>(null);
   const [projectTempImages, setProjectTempImages] = useState<Record<string, { url: string; file?: File; isExisting: boolean }[]>>({});
@@ -58,6 +106,14 @@ export default function AdminPage() {
       setProfile(data.profile);
       setProjects(data.projects);
       setExperiences(data.experiences);
+
+      if (data.hero) setHero(data.hero);
+      if (data.about) setAbout(data.about);
+      if (data.education) setEducation(data.education);
+      if (data.timelineExperience) setTimelineExperience(data.timelineExperience);
+      if (data.skills) setSkills(data.skills);
+      if (data.services) setServices(data.services);
+      if (data.contact) setContact(data.contact);
     } catch (err) {
       console.error("Failed to fetch portfolio:", err);
     } finally {
@@ -140,6 +196,87 @@ export default function AdminPage() {
       showMessage("Experiences saved successfully!");
     } catch (err) {
       showMessage("Failed to save experiences");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Save new sections
+  const saveHomePage = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/homepage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hero, about, timelineExperience }),
+      });
+      showMessage("Home page sections saved successfully!");
+    } catch {
+      showMessage("Failed to save home page sections");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveEducation = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/education", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(education),
+      });
+      showMessage("Education saved successfully!");
+    } catch {
+      showMessage("Failed to save education");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveSkills = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(skills),
+      });
+      showMessage("Skills saved successfully!");
+    } catch {
+      showMessage("Failed to save skills");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveServices = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(services),
+      });
+      showMessage("Services saved successfully!");
+    } catch {
+      showMessage("Failed to save services");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveContact = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contact),
+      });
+      showMessage("Contact saved successfully!");
+    } catch {
+      showMessage("Failed to save contact");
     } finally {
       setSaving(false);
     }
@@ -295,6 +432,36 @@ export default function AdminPage() {
             className={activeTab === "experiences" ? "btn-primary" : "btn-secondary"}
           >
             Experiences
+          </button>
+          <button
+            onClick={() => setActiveTab("homepage")}
+            className={activeTab === "homepage" ? "btn-primary" : "btn-secondary"}
+          >
+            Home Page
+          </button>
+          <button
+            onClick={() => setActiveTab("education")}
+            className={activeTab === "education" ? "btn-primary" : "btn-secondary"}
+          >
+            Education
+          </button>
+          <button
+            onClick={() => setActiveTab("skills")}
+            className={activeTab === "skills" ? "btn-primary" : "btn-secondary"}
+          >
+            Skills
+          </button>
+          <button
+            onClick={() => setActiveTab("services")}
+            className={activeTab === "services" ? "btn-primary" : "btn-secondary"}
+          >
+            Services
+          </button>
+          <button
+            onClick={() => setActiveTab("contact")}
+            className={activeTab === "contact" ? "btn-primary" : "btn-secondary"}
+          >
+            Contact
           </button>
         </div>
 
@@ -557,6 +724,513 @@ export default function AdminPage() {
                 {saving ? "Saving..." : "Save All Experiences"}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Home Page Tab */}
+        {activeTab === "homepage" && (
+          <div className="card space-y-6">
+            <h2 className="text-xl font-semibold">Edit Home Page Sections</h2>
+
+            {/* Hero Section */}
+            <div>
+              <h3 className="text-lg font-medium mb-4">Hero Section</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={hero.title}
+                    onChange={(e) => setHero({ ...hero, title: e.target.value })}
+                    className="input-field"
+                    placeholder="Hero title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Subtitle</label>
+                  <input
+                    type="text"
+                    value={hero.subtitle}
+                    onChange={(e) => setHero({ ...hero, subtitle: e.target.value })}
+                    className="input-field"
+                    placeholder="Hero subtitle"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Description</label>
+                <textarea
+                  value={hero.description}
+                  onChange={(e) => setHero({ ...hero, description: e.target.value })}
+                  className="input-field min-h-[80px]"
+                  placeholder="Hero section description"
+                />
+              </div>
+            </div>
+
+            {/* About Section */}
+            <div>
+              <h3 className="text-lg font-medium mb-4">About Section</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={about.title}
+                    onChange={(e) => setAbout({ ...about, title: e.target.value })}
+                    className="input-field"
+                    placeholder="About section title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Tags (comma separated)</label>
+                  <input
+                    type="text"
+                    value={about.tags.join(", ")}
+                    onChange={(e) => setAbout({ ...about, tags: e.target.value.split(",").map(tag => tag.trim()) })}
+                    className="input-field"
+                    placeholder="e.g. Developer, Designer"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Paragraph 1 (start)</label>
+                <textarea
+                  value={about.p1_start}
+                  onChange={(e) => setAbout({ ...about, p1_start: e.target.value })}
+                  className="input-field min-h-[80px]"
+                  placeholder="First part of the about section"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Paragraph 1 (highlight)</label>
+                <textarea
+                  value={about.p1_highlight}
+                  onChange={(e) => setAbout({ ...about, p1_highlight: e.target.value })}
+                  className="input-field min-h-[80px]"
+                  placeholder="Highlighted part of the about section"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Paragraph 1 (end)</label>
+                <textarea
+                  value={about.p1_end}
+                  onChange={(e) => setAbout({ ...about, p1_end: e.target.value })}
+                  className="input-field min-h-[80px]"
+                  placeholder="Last part of the about section"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Paragraph 2</label>
+                <textarea
+                  value={about.p2}
+                  onChange={(e) => setAbout({ ...about, p2: e.target.value })}
+                  className="input-field min-h-[80px]"
+                  placeholder="Additional information"
+                />
+              </div>
+            </div>
+
+            {/* Timeline Experience Section */}
+            <div>
+              <h3 className="text-lg font-medium mb-4">Timeline Experience Section</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={timelineExperience.title}
+                    onChange={(e) => setTimelineExperience({ ...timelineExperience, title: e.target.value })}
+                    className="input-field"
+                    placeholder="Timeline title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Date</label>
+                  <input
+                    type="text"
+                    value={timelineExperience.date}
+                    onChange={(e) => setTimelineExperience({ ...timelineExperience, date: e.target.value })}
+                    className="input-field"
+                    placeholder="e.g. 2023"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Company</label>
+                <input
+                  type="text"
+                  value={timelineExperience.company}
+                  onChange={(e) => setTimelineExperience({ ...timelineExperience, company: e.target.value })}
+                  className="input-field"
+                  placeholder="Company name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Points (comma separated)</label>
+                <input
+                  type="text"
+                  value={timelineExperience.points.join(", ")}
+                  onChange={(e) => setTimelineExperience({ ...timelineExperience, points: e.target.value.split(",").map(point => point.trim()) })}
+                  className="input-field"
+                  placeholder="e.g. Developed a new feature, Improved performance"
+                />
+              </div>
+            </div>
+
+            <button onClick={saveHomePage} disabled={saving} className="btn-primary">
+              {saving ? "Saving..." : "Save Home Page Sections"}
+            </button>
+          </div>
+        )}
+
+        {/* Education Tab */}
+        {activeTab === "education" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Manage Education</h2>
+              <button
+                onClick={() =>
+                  setEducation([
+                    ...education,
+                    {
+                      id: Date.now().toString(),
+                      degree: "New Degree",
+                      school: "School / Platform",
+                      date: "",
+                      desc: "",
+                    },
+                  ])
+                }
+                className="btn-primary"
+              >
+                + Add Education
+              </button>
+            </div>
+
+            {education.map((edu, idx) => (
+              <div key={edu.id} className="card space-y-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-medium">Education {idx + 1}</h3>
+                  <button
+                    onClick={() => setEducation(education.filter((e) => e.id !== edu.id))}
+                    className="text-red-500 hover:text-red-400"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">Degree</label>
+                    <input
+                      type="text"
+                      value={edu.degree}
+                      onChange={(e) =>
+                        setEducation(
+                          education.map((it) =>
+                            it.id === edu.id ? { ...it, degree: e.target.value } : it
+                          )
+                        )
+                      }
+                      className="input-field"
+                      placeholder="e.g. Google Data Analytics Certificate"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">School</label>
+                    <input
+                      type="text"
+                      value={edu.school}
+                      onChange={(e) =>
+                        setEducation(
+                          education.map((it) =>
+                            it.id === edu.id ? { ...it, school: e.target.value } : it
+                          )
+                        )
+                      }
+                      className="input-field"
+                      placeholder="e.g. Coursera (Google)"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Date</label>
+                  <input
+                    type="text"
+                    value={edu.date}
+                    onChange={(e) =>
+                      setEducation(
+                        education.map((it) =>
+                          it.id === edu.id ? { ...it, date: e.target.value } : it
+                        )
+                      )
+                    }
+                    className="input-field"
+                    placeholder="e.g. Nov 2024 : May 2025"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Description</label>
+                  <textarea
+                    value={edu.desc}
+                    onChange={(e) =>
+                      setEducation(
+                        education.map((it) =>
+                          it.id === edu.id ? { ...it, desc: e.target.value } : it
+                        )
+                      )
+                    }
+                    className="input-field min-h-[80px]"
+                    placeholder="What you learned / focus areas"
+                  />
+                </div>
+              </div>
+            ))}
+
+            {education.length > 0 && (
+              <button onClick={saveEducation} disabled={saving} className="btn-primary">
+                {saving ? "Saving..." : "Save Education"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Skills Tab */}
+        {activeTab === "skills" && (
+          <div className="card space-y-6">
+            <h2 className="text-xl font-semibold">Edit Skills</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Analysis Skills (comma separated)</label>
+                <textarea
+                  value={(skills.technical.analysis ?? []).join(", ")}
+                  onChange={(e) =>
+                    setSkills({
+                      ...skills,
+                      technical: {
+                        ...skills.technical,
+                        analysis: e.target.value
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      },
+                    })
+                  }
+                  className="input-field min-h-[100px]"
+                  placeholder="Data Cleaning, EDA, ..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Programming Skills (comma separated)</label>
+                <textarea
+                  value={(skills.technical.programming ?? []).join(", ")}
+                  onChange={(e) =>
+                    setSkills({
+                      ...skills,
+                      technical: {
+                        ...skills.technical,
+                        programming: e.target.value
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      },
+                    })
+                  }
+                  className="input-field min-h-[100px]"
+                  placeholder="Python, SQL, ..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Visualization Skills (comma separated)</label>
+                <textarea
+                  value={(skills.technical.viz ?? []).join(", ")}
+                  onChange={(e) =>
+                    setSkills({
+                      ...skills,
+                      technical: {
+                        ...skills.technical,
+                        viz: e.target.value
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      },
+                    })
+                  }
+                  className="input-field min-h-[100px]"
+                  placeholder="Power BI, Tableau, Excel, ..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Soft skills (one per line: title | desc)</label>
+                <textarea
+                  value={(skills.soft ?? [])
+                    .map((s) => `${s.title} | ${s.desc}`)
+                    .join("\n")}
+                  onChange={(e) => {
+                    const parsed = e.target.value
+                      .split("\n")
+                      .map((line) => line.trim())
+                      .filter(Boolean)
+                      .map((line) => {
+                        const [title, ...rest] = line.split("|");
+                        return {
+                          title: (title ?? "").trim(),
+                          desc: rest.join("|").trim(),
+                        };
+                      })
+                      .filter((x) => x.title.length > 0);
+                    setSkills({ ...skills, soft: parsed });
+                  }}
+                  className="input-field min-h-[100px]"
+                  placeholder="Communication | Presenting insights to stakeholders"
+                />
+              </div>
+            </div>
+
+            <button onClick={saveSkills} disabled={saving} className="btn-primary">
+              {saving ? "Saving..." : "Save Skills"}
+            </button>
+          </div>
+        )}
+
+        {/* Services Tab */}
+        {activeTab === "services" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Manage Services</h2>
+              <button
+                onClick={() =>
+                  setServices([
+                    ...services,
+                    { title: "New Service", desc: "", icon: "BarChart" },
+                  ])
+                }
+                className="btn-primary"
+              >
+                + Add Service
+              </button>
+            </div>
+
+            {services.map((service, idx) => (
+              <div key={`${service.title}-${idx}`} className="card space-y-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-medium">Service {idx + 1}</h3>
+                  <button
+                    onClick={() => setServices(services.filter((_, i) => i !== idx))}
+                    className="text-red-500 hover:text-red-400"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={service.title}
+                      onChange={(e) =>
+                        setServices(
+                          services.map((s, i) =>
+                            i === idx ? { ...s, title: e.target.value } : s
+                          )
+                        )
+                      }
+                      className="input-field"
+                      placeholder="Dashboard Design"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">Icon</label>
+                    <select
+                      value={service.icon}
+                      onChange={(e) =>
+                        setServices(
+                          services.map((s, i) =>
+                            i === idx ? { ...s, icon: e.target.value } : s
+                          )
+                        )
+                      }
+                      className="input-field"
+                    >
+                      <option value="BarChart">BarChart</option>
+                      <option value="Database">Database</option>
+                      <option value="Terminal">Terminal</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Description</label>
+                  <textarea
+                    value={service.desc}
+                    onChange={(e) =>
+                      setServices(
+                        services.map((s, i) =>
+                          i === idx ? { ...s, desc: e.target.value } : s
+                        )
+                      )
+                    }
+                    className="input-field min-h-[80px]"
+                    placeholder="Describe the service..."
+                  />
+                </div>
+              </div>
+            ))}
+
+            {services.length > 0 && (
+              <button onClick={saveServices} disabled={saving} className="btn-primary">
+                {saving ? "Saving..." : "Save Services"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Contact Tab */}
+        {activeTab === "contact" && (
+          <div className="card space-y-6">
+            <h2 className="text-xl font-semibold">Edit Contact Information</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">Phone</label>
+                <input
+                  type="text"
+                  value={contact.phone}
+                  onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+                  className="input-field"
+                  placeholder="e.g. +1 234 567 890"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-[var(--muted)] mb-1">LinkedIn</label>
+                <input
+                  type="text"
+                  value={contact.linkedin}
+                  onChange={(e) => setContact({ ...contact, linkedin: e.target.value })}
+                  className="input-field"
+                  placeholder="https://linkedin.com/in/..."
+                />
+              </div>
+            </div>
+
+            <button onClick={saveContact} disabled={saving} className="btn-primary">
+              {saving ? "Saving..." : "Save Contact"}
+            </button>
           </div>
         )}
       </div>
