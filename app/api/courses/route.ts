@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-
-export type CourseItem = {
-  id: string;
-  title: string;
-  platform?: string;
-  date?: string;
-  desc?: string;
-  link?: string;
-};
+import type { CourseItem } from "@/lib/types";
 
 type PortfolioDoc = { _id: string; courses?: CourseItem[] };
 
@@ -28,4 +20,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

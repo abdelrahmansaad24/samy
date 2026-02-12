@@ -327,7 +327,7 @@ export default function HomePageClient({ initial }: { initial: Portfolio }) {
                   >
                     <p>&gt; import pandas as pd</p>
                     <p>&gt; import matplotlib.pyplot as plt</p>
-                    <p>&gt; df = pd.read_csv('insights.csv')</p>
+                    <p>&gt; df = pd.read_csv(&apos;insights.csv&apos;)</p>
                     <p>&gt; df.analyze()</p>
                     <p className="text-emerald-500 animate-pulse">_</p>
                   </div>
@@ -623,7 +623,7 @@ export default function HomePageClient({ initial }: { initial: Portfolio }) {
             Ready to analyze your data?
           </h2>
           <p className={`text-xl mb-12 ${theme.textMuted}`}>
-            I am available for freelance projects and internships. Let's discuss how data can help your business grow.
+            I am available for freelance projects and internships. Let&apos;s discuss how data can help your business grow.
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">

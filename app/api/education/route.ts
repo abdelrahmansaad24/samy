@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import type { EducationItem } from "@/lib/types";
 
+type PortfolioDoc = { _id: string; education?: EducationItem[] };
+
 export async function POST(req: NextRequest) {
   try {
     const education: EducationItem[] = await req.json();
     const db = await getDb();
-    const col = db.collection("portfolio");
+    const col = db.collection<PortfolioDoc>("portfolio");
     await col.updateOne(
-      { _id: "main" } as any,
+      { _id: "main" },
       { $set: { education } },
       { upsert: true }
     );

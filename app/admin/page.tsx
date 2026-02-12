@@ -13,6 +13,7 @@ import {
   SkillsSection,
   ServiceItem,
   ContactSection,
+  CourseItem,
 } from "@/lib/types";
 
 const VALID_USERNAME = process.env.NEXT_PUBLIC_USERNAME;
@@ -68,6 +69,7 @@ export default function AdminPage() {
   });
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [contact, setContact] = useState<ContactSection>({ phone: "", linkedin: "" });
+  const [courses, setCourses] = useState<CourseItem[]>([]);
 
   const [activeTab, setActiveTab] = useState<
     | "profile"
@@ -75,6 +77,7 @@ export default function AdminPage() {
     | "experiences"
     | "homepage"
     | "education"
+    | "courses"
     | "skills"
     | "services"
     | "contact"
@@ -114,6 +117,7 @@ export default function AdminPage() {
       if (data.skills) setSkills(data.skills);
       if (data.services) setServices(data.services);
       if (data.contact) setContact(data.contact);
+      if (data.courses) setCourses(data.courses);
     } catch (err) {
       console.error("Failed to fetch portfolio:", err);
     } finally {
@@ -282,6 +286,22 @@ export default function AdminPage() {
     }
   };
 
+  const saveCourses = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(courses),
+      });
+      showMessage("Courses saved successfully!");
+    } catch {
+      showMessage("Failed to save courses");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const uploadImage = async (file: File): Promise<string | null> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -414,7 +434,7 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 mb-8 flex-wrap">
           <button
             onClick={() => setActiveTab("profile")}
             className={activeTab === "profile" ? "btn-primary" : "btn-secondary"}
@@ -444,6 +464,12 @@ export default function AdminPage() {
             className={activeTab === "education" ? "btn-primary" : "btn-secondary"}
           >
             Education
+          </button>
+          <button
+            onClick={() => setActiveTab("courses")}
+            className={activeTab === "courses" ? "btn-primary" : "btn-secondary"}
+          >
+            Courses
           </button>
           <button
             onClick={() => setActiveTab("skills")}
@@ -1230,6 +1256,137 @@ export default function AdminPage() {
 
             <button onClick={saveContact} disabled={saving} className="btn-primary">
               {saving ? "Saving..." : "Save Contact"}
+            </button>
+          </div>
+        )}
+
+        {/* Courses Tab */}
+        {activeTab === "courses" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Manage Courses</h2>
+              <button
+                onClick={() =>
+                  setCourses([
+                    ...courses,
+                    {
+                      id: Date.now().toString(),
+                      title: "New Course",
+                      platform: "",
+                      date: "",
+                      desc: "",
+                      link: "",
+                    },
+                  ])
+                }
+                className="btn-primary"
+              >
+                + Add Course
+              </button>
+            </div>
+
+            {courses.map((course, idx) => (
+              <div key={course.id} className="card space-y-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-medium">Course {idx + 1}</h3>
+                  <button
+                    onClick={() => setCourses(courses.filter((c) => c.id !== course.id))}
+                    className="text-red-500 hover:text-red-400"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={course.title}
+                      onChange={(e) =>
+                        setCourses(
+                          courses.map((c) =>
+                            c.id === course.id ? { ...c, title: e.target.value } : c
+                          )
+                        )
+                      }
+                      className="input-field"
+                      placeholder="Course title"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">Platform</label>
+                    <input
+                      type="text"
+                      value={course.platform || ""}
+                      onChange={(e) =>
+                        setCourses(
+                          courses.map((c) =>
+                            c.id === course.id ? { ...c, platform: e.target.value } : c
+                          )
+                        )
+                      }
+                      className="input-field"
+                      placeholder="Coursera / Udemy / ..."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">Date</label>
+                    <input
+                      type="text"
+                      value={course.date || ""}
+                      onChange={(e) =>
+                        setCourses(
+                          courses.map((c) =>
+                            c.id === course.id ? { ...c, date: e.target.value } : c
+                          )
+                        )
+                      }
+                      className="input-field"
+                      placeholder="2025"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--muted)] mb-1">Certificate / Link</label>
+                    <input
+                      type="url"
+                      value={course.link || ""}
+                      onChange={(e) =>
+                        setCourses(
+                          courses.map((c) =>
+                            c.id === course.id ? { ...c, link: e.target.value } : c
+                          )
+                        )
+                      }
+                      className="input-field"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-[var(--muted)] mb-1">Description</label>
+                  <textarea
+                    value={course.desc || ""}
+                    onChange={(e) =>
+                      setCourses(
+                        courses.map((c) =>
+                          c.id === course.id ? { ...c, desc: e.target.value } : c
+                        )
+                      )
+                    }
+                    className="input-field min-h-[80px]"
+                    placeholder="What the course covered..."
+                  />
+                </div>
+              </div>
+            ))}
+
+            <button onClick={saveCourses} disabled={saving} className="btn-primary">
+              {saving ? "Saving..." : "Save Courses"}
             </button>
           </div>
         )}
