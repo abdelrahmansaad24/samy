@@ -11,6 +11,7 @@ import {
   SkillsSection,
   ServiceItem,
   ContactSection,
+  CourseItem,
 } from "./types";
 
 // Define the document type for our portfolio collection
@@ -27,6 +28,7 @@ interface PortfolioDoc {
   skills?: SkillsSection;
   services?: ServiceItem[];
   contact?: ContactSection;
+  courses?: CourseItem[];
 }
 
 const DEFAULT_PROFILE: Profile = {
@@ -83,6 +85,8 @@ const DEFAULT_CONTACT: ContactSection = {
   linkedin: "",
 };
 
+const DEFAULT_COURSES: CourseItem[] = [];
+
 export async function getPortfolio(): Promise<Portfolio> {
   const db = await getDb();
   const col = db.collection<PortfolioDoc>("portfolio");
@@ -99,6 +103,7 @@ export async function getPortfolio(): Promise<Portfolio> {
       skills: DEFAULT_SKILLS,
       services: DEFAULT_SERVICES,
       contact: DEFAULT_CONTACT,
+      courses: DEFAULT_COURSES,
     };
   }
   return {
@@ -113,6 +118,7 @@ export async function getPortfolio(): Promise<Portfolio> {
     skills: doc.skills ?? DEFAULT_SKILLS,
     services: doc.services ?? DEFAULT_SERVICES,
     contact: doc.contact ?? DEFAULT_CONTACT,
+    courses: doc.courses ?? DEFAULT_COURSES,
   };
 }
 

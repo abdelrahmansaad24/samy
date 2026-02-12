@@ -10,6 +10,7 @@ import type {
   SkillsSection,
   ServiceItem,
   ContactSection,
+  CourseItem,
 } from "@/lib/types";
 
 type Theme = {
@@ -108,10 +109,12 @@ export default function HomePageClient({ initial }: { initial: Portfolio }) {
   const skills: SkillsSection | undefined = initial.skills;
   const services: ServiceItem[] = initial.services ?? [];
   const contact: ContactSection | undefined = initial.contact;
+  const courses: CourseItem[] = initial.courses ?? [];
 
   const navItems = [
     { id: "about", label: "About" },
     { id: "education", label: "Education" },
+    { id: "courses", label: "Courses" },
     { id: "experience", label: "Experience" },
     { id: "projects", label: "Projects" },
     { id: "skills", label: "Skills" },
@@ -364,6 +367,53 @@ export default function HomePageClient({ initial }: { initial: Portfolio }) {
                   </div>
                   <p className="text-emerald-500 mb-2 font-medium">{item.school}</p>
                   <p className={theme.textMuted}>{item.desc}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Courses */}
+      <section id="courses" className={`py-20 ${theme.bgAlt}`}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className={`text-3xl font-bold flex items-center mb-12 ${theme.textHeading}`}>
+            <span className="w-12 h-1 bg-emerald-500 mr-4"></span>
+            COURSES
+          </h2>
+
+          <div className="space-y-6">
+            {courses.length === 0 ? (
+              <div className={`rounded-xl border p-6 ${theme.bg} ${theme.border} ${theme.textMuted}`}>
+                No courses added yet.
+              </div>
+            ) : (
+              courses.map((c) => (
+                <div
+                  key={c.id}
+                  className={`p-6 rounded-xl border transition-all duration-300 ${theme.bg} ${theme.border} ${theme.cardHover}`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                    <h3 className={`text-xl font-bold ${theme.textHeading}`}>{c.title}</h3>
+                    {(c.date || c.platform) && (
+                      <span className={`${theme.textMuted} text-sm whitespace-nowrap`}>
+                        {[c.platform, c.date].filter(Boolean).join(" • ")}
+                      </span>
+                    )}
+                  </div>
+                  {c.desc && <p className={theme.textMuted}>{c.desc}</p>}
+                  {c.link && (
+                    <a
+                      href={c.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center font-medium hover:text-emerald-500 mt-4 ${
+                        isDarkMode ? "text-white" : "text-neutral-900"
+                      }`}
+                    >
+                      View Certificate <span className="ml-2">↗</span>
+                    </a>
+                  )}
                 </div>
               ))
             )}

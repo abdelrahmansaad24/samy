@@ -79,6 +79,15 @@ export type ContactSection = {
   linkedin?: string;
 };
 
+export type CourseItem = {
+  id: string;
+  title: string;
+  platform?: string;
+  date?: string;
+  desc?: string;
+  link?: string;
+};
+
 export type Portfolio = {
   // existing
   profile: Profile;
@@ -93,4 +102,5 @@ export type Portfolio = {
   skills?: SkillsSection;
   services?: ServiceItem[];
   contact?: ContactSection;
+  courses?: CourseItem[];
 };
